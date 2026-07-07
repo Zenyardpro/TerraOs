@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TerraOS — Landscape Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --limestone:#EDE8DC;
+    --limestone-deep:#E3DDCC;
+    --ink:#211D17;
+    --ink-soft:#4A443A;
+    --moss:#495F40;
+    --leaf:#7C8F52;
+    --slate:#4E5F5C;
+    --clay:#A87A2E;
+    --bedrock:#5A4A56;
+    --rust:#9C4A2E;
+    --line: rgba(33,29,23,0.14);
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--limestone);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:16px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .mono{
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+  }
+
+  h1,h2,h3{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    letter-spacing:-0.01em;
+    color:var(--ink);
+  }
+
+  a{color:inherit; text-decoration:none;}
+  img{max-width:100%; display:block;}
+
+  /* ===== CORE SAMPLE LEGEND (quiet signature, not literal text) ===== */
+  .core-legend{
+    position:fixed;
+    left:0; top:0; bottom:0;
+    width:10px;
+    z-index:40;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .core-legend span{
+    flex:1;
+    width:6px;
+    opacity:0.35;
+    transition:opacity 0.45s ease, width 0.45s ease;
+  }
+  .core-legend span.active{
+    opacity:1;
+    width:9px;
+  }
+  @media (max-width:860px){ .core-legend{display:none;} }
+
+  /* ===== NAV ===== */
+  header{
+    position:sticky; top:0; z-index:30;
+    background:rgba(237,232,220,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+    padding-left:6px;
+  }
+  .nav-wrap{
+    max-width:1180px; margin:0 auto;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 28px;
+  }
+  .wordmark{
+    font-family:'Fraunces', serif;
+    font-size:1.35rem;
+    font-weight:600;
+  }
+  nav ul{
+    display:flex; gap:26px; list-style:none;
+  }
+  nav a{
+    font-size:0.86rem;
+    font-weight:500;
+    color:var(--ink-soft);
+    position:relative;
+    padding-bottom:3px;
+    transition:color 0.2s ease;
+  }
+  nav a:hover{color:var(--ink);}
+  nav a::after{
+    content:'';
+    position:absolute; left:0; bottom:0;
+    width:0; height:1.5px;
+    background:var(--rust);
+    transition:width 0.25s ease;
+  }
+  nav a:hover::after{width:100%;}
+  @media (max-width:760px){
+    nav ul.primary{display:none;}
+  }
+
+  /* ===== HERO ===== */
+  .hero{
+    max-width:820px; margin:0 auto;
+    padding:96px 28px 0;
+    padding-left:34px;
+  }
+  @media (max-width:900px){
+    .hero{padding-top:56px;}
+  }
+  .hero-eyebrow{
+    font-size:0.72rem;
+    color:var(--rust);
+    margin-bottom:16px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .hero-eyebrow::before{
+    content:'';
+    width:22px; height:1px;
+    background:var(--rust);
+  }
+  .hero-brandline{
+    font-size:0.95rem;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+    letter-spacing:0.01em;
+  }
+  .hero h1{
+    font-size:clamp(2.6rem, 5.4vw, 4.6rem);
+    line-height:1.03;
+    margin-bottom:26px;
+  }
+  .hero h1 em{
+    font-style:italic;
+    color:var(--moss);
+  }
+  .hero p.lede{
+    font-size:1.18rem;
+    color:var(--ink-soft);
+    max-width:46ch;
+    margin-bottom:34px;
+    font-weight:400;
+  }
+  .hero-actions{display:flex; gap:14px; flex-wrap:wrap;}
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:13px 22px;
+    font-size:0.88rem;
+    font-weight:500;
+    border-radius:3px;
+    transition:all 0.2s ease;
+  }
+  .btn-primary{
+    background:var(--ink);
+    color:var(--limestone);
+  }
+  .btn-primary:hover{background:var(--rust);}
+  .btn-ghost{
+    border:1px solid var(--line);
+    color:var(--ink);
+  }
+  .btn-ghost:hover{border-color:var(--ink);}
+
+  /* ===== hero layer strip — functional mini-nav, not decoration ===== */
+  .layer-strip{
+    margin-top:40px;
+    padding-bottom:56px;
+  }
+  .layer-track{
+    display:flex;
+    height:5px;
+    border-radius:3px;
+    overflow:hidden;
+    margin-bottom:10px;
+  }
+  .layer-track a{flex:1; transition:opacity 0.2s ease;}
+  .layer-track a:hover{opacity:0.7;}
+  .layer-keys{
+    display:flex;
+    justify-content:space-between;
+  }
+  .layer-keys a{
+    font-size:0.72rem;
+    color:var(--ink-soft);
+    font-weight:500;
+  }
+  .layer-keys a:hover{color:var(--rust);}
+  @media (max-width:640px){
+    .layer-keys{flex-wrap:wrap; gap:8px 16px;}
+    .layer-keys a{flex:0 0 auto;}
+  }
+
+  /* ===== MATERIALS CONNECTOR — deliberately not a card grid ===== */
+  .connector{
+    max-width:1180px; margin:0 auto;
+    padding:40px 28px;
+    padding-left:34px;
+    border-top:1px solid var(--line);
+  }
+  .connector-inner{
+    display:flex;
+    align-items:center;
+    gap:22px;
+    padding:26px 28px;
+    background:var(--limestone-deep);
+    border-radius:4px;
+    border-left:3px solid var(--clay);
+    flex-wrap:wrap;
+  }
+  .connector-inner .swatch{
+    width:10px; height:10px;
+    flex-shrink:0;
+  }
+  .connector-text{flex:1; min-width:220px;}
+  .connector-eyebrow{
+    font-size:0.66rem;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .connector-body{
+    font-size:0.88rem;
+    color:var(--ink-soft);
+    max-width:62ch;
+    line-height:1.55;
+  }
+  .connector-cta{
+    flex-shrink:0;
+    font-size:0.82rem;
+  }
+  @media (max-width:640px){
+    .connector-inner{padding:22px;}
+  }
+
+  /* ===== SECTION SCAFFOLDING ===== */
+  section.cluster{
+    max-width:1180px; margin:0 auto;
+    padding:64px 28px;
+    padding-left:34px;
+    border-top:1px solid var(--line);
+  }
+  .cluster-head{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:24px;
+    margin-bottom:36px;
+    flex-wrap:wrap;
+  }
+  .cluster-tag{
+    display:flex; align-items:center; gap:9px;
+    margin-bottom:12px;
+  }
+  .swatch{
+    width:9px; height:9px;
+    border-radius:50%;
+    flex-shrink:0;
+  }
+  .cluster-tag span.label{
+    font-size:0.86rem;
+    color:var(--ink-soft);
+    font-weight:500;
+  }
+  .cluster-head h2{font-size:1.9rem;}
+  .cluster-desc{
+    max-width:38ch;
+    color:var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .cluster-link{
+    font-size:0.84rem;
+    font-weight:500;
+    border-bottom:1px solid var(--ink);
+    padding-bottom:2px;
+    white-space:nowrap;
+  }
+  .cluster-link:hover{color:var(--rust); border-color:var(--rust);}
+
+  /* ===== CARD GRID ===== */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(230px, 1fr));
+    gap:0;
+    background:transparent;
+    border:1px solid var(--line);
+  }
+  .card{
+    background:var(--limestone);
+    padding:26px 24px;
+    min-height:168px;
+    display:flex; flex-direction:column; justify-content:space-between;
+    position:relative;
+    border-right:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    transition:background 0.25s ease;
+  }
+  .card:hover{background:var(--limestone-deep);}
+  .card-num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.66rem;
+    color:var(--ink-soft);
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+  }
+  .card h3{
+    font-size:1.18rem;
+    font-weight:500;
+    margin:14px 0 8px;
+  }
+  .card p{
+    font-size:0.85rem;
+    color:var(--ink-soft);
+    line-height:1.45;
+  }
+  .card-arrow{
+    align-self:flex-end;
+    font-size:1rem;
+    color:var(--ink-soft);
+    transition:transform 0.2s ease, color 0.2s ease;
+  }
+  .card:hover .card-arrow{
+    transform:translate(3px,-3px);
+    color:var(--rust);
+  }
+  @media (max-width:640px){
+    .grid{grid-template-columns:repeat(2, 1fr);}
+    .card:last-child:nth-child(odd){grid-column:1 / -1;}
+  }
+
+  /* ===== MANIFESTO ===== */
+  .manifesto{
+    max-width:820px; margin:0 auto;
+    padding:72px 28px;
+    padding-left:34px;
+    border-top:1px solid var(--line);
+  }
+  .manifesto-eyebrow{
+    font-size:0.72rem;
+    color:var(--rust);
+    margin-bottom:20px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .manifesto-eyebrow::before{
+    content:'';
+    width:22px; height:1px;
+    background:var(--rust);
+  }
+  .manifesto h2{
+    font-size:clamp(1.7rem, 3.4vw, 2.5rem);
+    line-height:1.18;
+    max-width:17ch;
+    margin-bottom:24px;
+  }
+  .manifesto p{
+    font-size:1.02rem;
+    color:var(--ink-soft);
+    max-width:56ch;
+    line-height:1.65;
+    margin-bottom:14px;
+  }
+  .manifesto .thesis{
+    font-weight:500;
+    color:var(--ink);
+    font-size:1.12rem;
+    margin-top:22px;
+    max-width:52ch;
+  }
+
+  /* ===== TRUST STRIP ===== */
+  .trust-strip{
+    max-width:1180px; margin:0 auto;
+    padding:0 28px 48px;
+    padding-left:34px;
+  }
+  .trust-inner{
+    display:flex; align-items:baseline; gap:20px; flex-wrap:wrap;
+    padding:20px 26px;
+    border:1px solid var(--line);
+    border-radius:4px;
+  }
+  .trust-label{
+    font-size:0.66rem;
+    color:var(--ink-soft);
+    white-space:nowrap;
+    flex-shrink:0;
+    align-self:center;
+  }
+  .trust-clients{
+    display:flex; gap:24px; flex-wrap:wrap;
+    font-family:'Fraunces', serif;
+    font-size:0.98rem;
+    color:var(--ink);
+    flex:2 1 320px;
+  }
+  .trust-clients span{opacity:0.82;}
+  .trust-years{
+    font-size:0.78rem;
+    color:var(--ink-soft);
+    white-space:nowrap;
+    margin-left:auto;
+  }
+  @media (max-width:640px){
+    .trust-inner{padding:18px 20px;}
+    .trust-years{margin-left:0;}
+  }
+
+  /* ===== PLATFORM SHELL (unifies Tools into one system) ===== */
+  .platform-shell{
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:var(--limestone-deep);
+    overflow:hidden;
+  }
+  .platform-header{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px; flex-wrap:wrap;
+    padding:16px 24px;
+    border-bottom:1px solid var(--line);
+  }
+  .platform-header .platform-name{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.02rem;
+  }
+  .platform-header .platform-meta{
+    font-size:0.66rem;
+    color:var(--ink-soft);
+  }
+  .platform-shell .grid{
+    border:none;
+    background:transparent;
+  }
+  .platform-shell .card{background:var(--limestone-deep); border-color:var(--line);}
+  .platform-shell .card:hover{background:var(--limestone);}
+
+  .card-num-below{
+    display:block;
+    margin:8px 0 12px;
+  }
+
+  /* ===== CORE SAMPLE STRATA — each section washed with its own layer color ===== */
+  /* fallback hex values pre-computed for browsers without color-mix() support */
+  #learn{ background:#D6D5C6; background:color-mix(in srgb, var(--moss) 14%, var(--limestone)); border-top:2px solid var(--moss); }
+  #learn .card-num{ color:var(--moss); }
+
+  #design{ background:#DDDCC9; background:color-mix(in srgb, var(--leaf) 14%, var(--limestone)); border-top:2px solid var(--leaf); }
+  #design .card-num{ color:var(--leaf); }
+
+  #materials{ background:#E3D9C4; background:color-mix(in srgb, var(--clay) 14%, var(--limestone)); border-top:2px solid var(--clay); }
+  #materials .connector-eyebrow{ color:var(--clay); }
+
+  #tools{ background:#D7D5CA; background:color-mix(in srgb, var(--slate) 14%, var(--limestone)); border-top:2px solid var(--slate); }
+  #tools .card-num{ color:var(--slate); }
+
+  #research{ background:#D8D2C9; background:color-mix(in srgb, var(--bedrock) 14%, var(--limestone)); border-top:2px solid var(--bedrock); }
+  #research .card-num{ color:var(--bedrock); }
+
+  /* ===== FOOTER ===== */
+  footer{
+    max-width:1180px; margin:0 auto;
+    padding:56px 28px 32px;
+    padding-left:34px;
+    border-top:1px solid var(--line);
+  }
+  .foot-top{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    flex-wrap:wrap; gap:24px;
+    margin-bottom:40px;
+  }
+  .foot-brand h3{font-size:1.3rem; margin-bottom:6px;}
+  .foot-brand p{color:var(--ink-soft); font-size:0.85rem; max-width:38ch;}
+  .foot-links{
+    display:flex; gap:36px; flex-wrap:wrap;
+  }
+  .foot-links div{display:flex; flex-direction:column; gap:8px;}
+  .foot-links .mono{font-size:0.64rem; color:var(--ink-soft); margin-bottom:4px;}
+  .foot-links a{font-size:0.86rem;}
+  .foot-links a:hover{color:var(--rust);}
+  .foot-bottom{
+    padding-top:20px; border-top:1px solid var(--line);
+    font-size:0.72rem; color:var(--ink-soft);
+  }
+
+  /* reveal on scroll */
+  .reveal{
+    opacity:0; transform:translateY(14px);
+    transition:opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.in{opacity:1; transform:translateY(0);}
+  @media (prefers-reduced-motion: reduce){
+    .reveal{opacity:1; transform:none; transition:none;}
+    .core-legend span{transition:none;}
+    html{scroll-behavior:auto;}
+  }
+</style>
+</head>
+<body>
+
+<!--
+NARRATIVE STRATEGY
+
+v1: Tell one story.
+The homepage explains what TerraOS is and why it exists. It sells the system, not individual user journeys.
+
+v2: Add role-specific destination pages.
+Architect → Design
+Contractor → TerraCost / TerraExec
+Engineer → Research
+
+v3: Only if analytics justify it, introduce a subtle "Explore by role" entry point.
+
+Reasoning:
+Visitors should understand TerraOS before being asked who they are.
+Introducing role-based navigation too early shifts the homepage from a vision page into a product-selection page.
+-->
+
+
+<div class="core-legend">
+  <span data-key="learn" style="background:var(--moss)"></span>
+  <span data-key="design" style="background:var(--leaf)"></span>
+  <span data-key="materials" style="background:var(--clay)"></span>
+  <span data-key="tools" style="background:var(--slate)"></span>
+  <span data-key="research" style="background:var(--bedrock)"></span>
+</div>
+
+<header>
+  <div class="nav-wrap">
+    <div class="wordmark">TerraOS</div>
+    <nav>
+      <ul class="primary">
+        <li><a href="#learn">Learn</a></li>
+        <li><a href="#design">Design</a></li>
+        <li><a href="#tools">Platform</a></li>
+        <li><a href="#research">Research</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-brandline">TerraOS —</div>
+  <h1>Landscape<br><em>Intelligence.</em></h1>
+  <p class="lede">Understand the ground. Design what grows on it. Build it with certainty. Keep it alive for decades — one connected system, not a pile of separate decisions.</p>
+  <div class="hero-actions">
+    <a href="#learn" class="btn btn-primary">Start with the ground →</a>
+    <a href="#tools" class="btn btn-ghost">Open the tools</a>
+  </div>
+
+  <div class="layer-strip">
+    <div class="layer-track">
+      <a href="#learn" style="background:var(--moss)" title="Learn"></a>
+      <a href="#design" style="background:var(--leaf)" title="Design"></a>
+      <a href="#materials" style="background:var(--clay)" title="Materials"></a>
+      <a href="#tools" style="background:var(--slate)" title="Platform"></a>
+      <a href="#research" style="background:var(--bedrock)" title="Research"></a>
+    </div>
+    <div class="layer-keys mono">
+      <a href="#learn">Learn</a>
+      <a href="#design">Design</a>
+      <a href="#materials">Materials</a>
+      <a href="#tools">Platform</a>
+      <a href="#research">Research</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MANIFESTO ============ -->
+<section class="manifesto reveal" id="why">
+  <p class="manifesto-eyebrow mono">Why TerraOS</p>
+  <h2>Landscape knowledge is fragmented.</h2>
+  <p>Designers, contractors, suppliers, and owners each work from a different mental model of the same ground — different assumptions about light, soil, water, and what a plant actually needs to survive there.</p>
+  <p>Nothing connects what's known to what gets built, so knowledge gets recreated, lost, and disconnected from one stage to the next.</p>
+  <p class="thesis">TerraOS is the shared intelligence layer that connects them — one system that carries a site's knowledge from the ground, through design, into what actually gets built and kept alive.</p>
+</section>
+
+<!-- ============ LEARN ============ -->
+<section class="cluster reveal" id="learn">
+  <div class="cluster-head">
+    <div>
+      <div class="cluster-tag">
+        <span class="swatch" style="background:var(--moss)"></span>
+        <span class="label">Knowledge, free to read</span>
+      </div>
+      <h2>Learn</h2>
+      <p class="cluster-desc">Where a site's conditions get understood — the point everything else in TerraOS moves from.</p>
+    </div>
+    <a href="#" class="cluster-link">All guides →</a>
+  </div>
+  <div class="grid">
+    <a class="card" href="#"><div><span class="card-num">Guide</span><h3>Light</h3><p>How sun and shade actually move through a site, and what that means for every plant on it.</p></div><span class="card-arrow">↗</span></a>
+    <a class="card" href="#"><div><span class="card-num">Guide</span><h3>Soil</h3><p>What's under the surface, and how it decides what will thrive above it.</p></div><span class="card-arrow">↗</span></a>
+    <a class="card" href="#"><div><span class="card-num">Guide</span><h3>Water</h3><p>Drainage and retention — how much water a spot really holds onto.</p></div><span class="card-arrow">↗</span></a>
+    <a class="card" href="#"><div><span class="card-num">Guide</span><h3>Plant Placement</h3><p>Where a species actually wants to live, not just where it looks good in a render.</p></div><span class="card-arrow">↗</span></a>
+    <a class="card" href="#"><div><span class="card-num">Guide</span><h3>Plant Library</h3><p>Every species we specify, with the conditions it needs to survive here.</p></div><span class="card-arrow">↗</span></a>
+  </div>
+</section>
+
+<!-- ============ DESIGN ============ -->
+<section class="cluster reveal" id="design">
+  <div class="cluster-head">
+    <div>
+      <div class="cluster-tag">
+        <span class="swatch" style="background:var(--leaf)"></span>
+        <span class="label">Where it becomes a plan</span>
+      </div>
+      <h2>Design</h2>
+      <p class="cluster-desc">Where that understanding becomes a plan — the same knowledge, applied to an actual site.</p>
+    </div>
+    <a href="#" class="cluster-link">Browse collections →</a>
+  </div>
+  <div class="grid">
+    <a class="card" href="#"><div><span class="card-num">Collection</span><h3>Plant Ensembles</h3><p>Species grouped the way they'd grow together in the wild — not just color-matched.</p></div><span class="card-arrow">↗</span></a>
+    <a class="card" href="#"><div><span class="card-num">Collection</span><h3>Courtyards</h3><p>Enclosed, shaded, humid — built for the microclimate a courtyard actually has.</p></div><span class="card-arrow">↗</span></a>
+    <a class="card" href="#"><div><span class="card-num">Collection</span><h3>Balconies</h3><p>Wind, weight limits, and reflected heat — solved before you buy a single pot.</p></div><span class="card-arrow">↗</span></a>
+    <a class="card" href="#"><div><span class="card-num">Collection</span><h3>Offices</h3><p>Low light, low maintenance, and still alive in year three.</p></div><span class="card-arrow">↗</span></a>
+    <a class="card" href="#"><div><span class="card-num">Collection</span><h3>Full Sites</h3><p>Park zones, pathways, and planting logic, planned as one system.</p></div><span class="card-arrow">↗</span></a>
+  </div>
+</section>
+
+<!-- ============ TRUST STRIP ============ -->
+<section class="trust-strip reveal">
+  <div class="trust-inner">
+    <span class="trust-label mono">Shared by</span>
+    <div class="trust-clients">
+      <span>Architects</span>
+      <span>Engineers</span>
+      <span>Landscape Designers</span>
+      <span>Contractors</span>
+    </div>
+    <span class="trust-years mono">7+ years designing &amp; executing landscapes</span>
+  </div>
+</section>
+
+<!-- ============ TOOLS / PLATFORM ============ -->
+<section class="cluster reveal" id="tools">
+  <div class="cluster-head">
+    <div>
+      <div class="cluster-tag">
+        <span class="swatch" style="background:var(--slate)"></span>
+        <span class="label">One platform, four modules</span>
+      </div>
+      <h2>TerraOS Platform</h2>
+      <p class="cluster-desc">One dataset, start to finish: TerraScope captures the site, TerraCost prices and structures it, TerraExec builds and maintains it.</p>
+    </div>
+    <a href="#" class="cluster-link">See what's coming →</a>
+  </div>
+  <div class="platform-shell">
+    <div class="platform-header">
+      <span class="platform-name">TerraOS</span>
+      <span class="platform-meta mono">4 modules · 1 system</span>
+    </div>
+    <div class="grid">
+      <a class="card" href="https://terra-cost-landing.vercel.app" target="_blank" rel="noopener"><div><span class="card-num">Live</span><h3>TerraCost</h3><p>Converts site intelligence into build intelligence — a structured, itemised BOQ that carries straight through to TerraExec, not a one-off PDF.</p></div><span class="card-arrow">↗</span></a>
+      <a class="card" href="https://terrascope-ten.vercel.app" target="_blank" rel="noopener"><div><span class="card-num">Live</span><h3>TerraScope</h3><p>Creates the digital foundation every other module builds on — capture zones, plants, and dimensions on your phone, straight into estimation.</p></div><span class="card-arrow">↗</span></a>
+      <a class="card" href="#"><div><span class="card-num">Soon</span><h3>TerraDesign</h3><p>Turns site conditions into a planting plan — a zone's light, soil, and water logic, resolved into what actually gets planted.</p></div><span class="card-arrow">↗</span></a>
+      <a class="card" href="#"><div><span class="card-num">Soon</span><h3>TerraExec</h3><p>The BOQ becomes a work order — execution schedules, material dispatch, and the maintenance calendar that keeps it alive for years, not months.</p></div><span class="card-arrow">↗</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MATERIALS — connecting layer, not a section ============ -->
+<section class="connector reveal" id="materials">
+  <div class="connector-inner">
+    <div class="connector-text">
+      <p class="connector-eyebrow mono">The connecting layer</p>
+      <p class="connector-body">Every soil mix, planter, and amendment lives here — named at the point in the knowledge above where it belongs. Not a shop. A reference for what exists and what it's for, growing as more makers are added to the index.</p>
+    </div>
+    <a href="#" class="cluster-link connector-cta">Browse the index →</a>
+  </div>
+</section>
+
+<!-- ============ RESEARCH ============ -->
+<section class="cluster reveal" id="research">
+  <div class="cluster-head">
+    <div>
+      <div class="cluster-tag">
+        <span class="swatch" style="background:var(--bedrock)"></span>
+        <span class="label">The reasoning underneath</span>
+      </div>
+      <h2>Research</h2>
+      <p class="cluster-desc">Where everything above comes from — most companies keep this hidden. We don't.</p>
+    </div>
+    <a href="#" class="cluster-link">Read the frameworks →</a>
+  </div>
+  <div class="grid">
+    <a class="card" href="#"><div><h3>Shared Vocabulary</h3><span class="card-num card-num-below">Ontology</span><p>One set of terms so every zone, plant, and material relates to the others consistently, across every module.</p></div><span class="card-arrow">↗</span></a>
+    <a class="card" href="#"><div><h3>Connected Reasoning</h3><span class="card-num card-num-below">Knowledge Graph</span><p>How a site's conditions connect to the right plants, soil, and detailing — automatically, not by memory.</p></div><span class="card-arrow">↗</span></a>
+    <a class="card" href="#"><div><h3>Common Ground</h3><span class="card-num card-num-below">Standards</span><p>The shared specifications that ensure products, plans, and execution follow the same rules across every project.</p></div><span class="card-arrow">↗</span></a>
+    <a class="card" href="#"><div><h3>Category Logic</h3><span class="card-num card-num-below">Taxonomy</span><p>How species, zones, and materials get classified — and why that classification matters for design.</p></div><span class="card-arrow">↗</span></a>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-top">
+    <div class="foot-brand">
+      <h3>TerraOS</h3>
+      <p>A connected knowledge system for the built landscape — how sites get understood, designed, built, and kept alive.</p>
+    </div>
+    <div class="foot-links">
+      <div>
+        <span class="mono">Explore</span>
+        <a href="#materials">Materials index</a>
+        <a href="#">Projects</a>
+        <a href="#">Resources</a>
+        <a href="#research">Research</a>
+      </div>
+      <div>
+        <span class="mono">Get help</span>
+        <a href="#">Consultation</a>
+        <a href="#">Installation</a>
+        <a href="#">Maintenance</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, {threshold:0.12});
+  revealEls.forEach(el=>io.observe(el));
+
+  // ambient legend: brighten the segment matching the section currently centered in view
+  const legendSpans = document.querySelectorAll('.core-legend span[data-key]');
+  const legendMap = {};
+  legendSpans.forEach(s => legendMap[s.dataset.key] = s);
+  const trackedSections = ['learn','design','materials','tools','research']
+    .map(id => document.getElementById(id))
+    .filter(Boolean);
+
+  const legendIO = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      const span = legendMap[entry.target.id];
+      if(!span) return;
+      if(entry.isIntersecting){ span.classList.add('active'); }
+      else{ span.classList.remove('active'); }
+    });
+  }, {rootMargin:'-45% 0px -45% 0px', threshold:0});
+  trackedSections.forEach(sec => legendIO.observe(sec));
+</script>
+
+</body>
+</html>
